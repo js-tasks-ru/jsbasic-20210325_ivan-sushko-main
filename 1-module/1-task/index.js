@@ -2,7 +2,7 @@
 
 function factorial(endNumber) {
   if (endNumber < 0) {
-	  return "Nope..."
+	  return "Nope...";
   } else if (endNumber == 0) {
 	  return 1;
   }
@@ -19,8 +19,3 @@ function factorial(endNumber) {
   
   return result;
 }
-
-alert(factorial(0));
-alert(factorial(1));
-alert(factorial(3));
-alert(factorial(5));

@@ -8,7 +8,3 @@ function checkSpam(str) {
   
   return false;
 }
-
-alert(checkSpam('1XbeT now'));
-alert(checkSpam('free xxxxx'));
-alert(checkSpam('innocent rabbit'));
