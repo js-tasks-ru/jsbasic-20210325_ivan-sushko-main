@@ -17,7 +17,7 @@ function getMinMax(str) {
 	  return element || element === 0;
   } );
   
-  let result = array_filtered.sort( (first, second) => first > second; );
+  let result = array_filtered.sort( (first, second) => first > second );
   
   return { min: result[ 0 ], max: result[ result.length - 1 ], }
 }
