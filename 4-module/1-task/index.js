@@ -1,9 +1,9 @@
 function makeFriendsList(friends) {
-  document.body.insertAdjacentHTML("beforeEnd", "<ul></ul>");
-  let list = document.querySelector("ul");
+  let list = document.createElement("ul");
   
-  for (let element of friends) {
-	  list.insertAdjacentHTML("beforeEnd", `<li>${element.firstName} ${element.lastName}</li>`);
+  for (let el of friends) {
+	  list.append(document.createElement("li"));
+	  list.lastElementChild.innerText = `${el.firstName+el.lastName}`;
   }
   
   return list;
