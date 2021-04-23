@@ -1,14 +1,32 @@
 function initCarousel() {
 	let carousel_area = document.querySelector(".carousel__inner");
+	let arrow_left = document.querySelector(".carousel__arrow_left");
+	let arrow_right = document.querySelector(".carousel__arrow_right");
+
+	arrow_left.style.display = "none";
+
+	let clicks = 0;
+	document.querySelector(".carousel").addEventListener("click", event => {
+
+		if (event.target.closest(".carousel__arrow_right")) {
+			++clicks;
+
+			if (clicks > 0) arrow_left.style.display = "";
+			if (clicks == 3) arrow_right.style.display = "none";
+			
+
+			carousel_area.style.transform = `translateX(-${clicks*carousel_area.offsetWidth}px)`;
+		}
+		if (event.target.closest(".carousel__arrow_left")) {
+			--clicks;
+
+			if (clicks < 3) arrow_right.style.display = "";
+			if (clicks == 0) arrow_left.style.display = "none";
 	
-	document.querySelector(".carousel").addEventListener("click", function(event) {
+
+			carousel_area.style.transform = `translateX(-${clicks*carousel_area.offsetWidth}px)`;
+		}
 		
-		(event.target.closest(".carousel__arrow_right"))
-		  ? carousel_area.append(carousel_area.children[0]) :
-		  
-		(event.target.closest(".carousel__arrow_left"))
-		  ? carousel_area.prepend(carousel_area.children[carousel_area.children.length - 1]) :
-		  
-		false;
 	});
-  }
+}
+  

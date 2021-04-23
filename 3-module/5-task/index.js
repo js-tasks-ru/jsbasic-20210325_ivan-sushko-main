@@ -9,15 +9,9 @@ function getMinMax(str) {
   
   array_flat = array_flat.flat();
   
-  for (let index = 0; index < array_flat.length; index++) {
-	  array_flat[index] = parseFloat( array_flat[index] ) || parseInt( array_flat[index] );
-  }
-  
   let array_filtered = array_flat.filter( (element) => {
-	  return element || element === 0;
+	  return Number(element);
   } );
-  
-  let result = array_filtered.sort( (first, second) => first > second );
-  
-  return { min: result[0], max: result[result.length - 1], }
+
+  return { min: Math.min(...array_filtered), max: Math.max(...array_filtered), }
 }
