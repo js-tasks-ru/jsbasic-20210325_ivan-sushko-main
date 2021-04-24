@@ -7,15 +7,14 @@ export default class ProductCard {
   }
   
   createCard() {
-	  let addToCart = new CustomEvent("product-add", {
-		  detail: this.product.id,
-		  bubbles: true,
-	  });
-	  
 	  let created_card = document.createElement("div")
 	  created_card.className = "card";
+	  
 	  created_card.onclick = event => {
-		  event.target.className == "card__button" ? event.target.dispatchEvent(addToCart) : false;
+		  event.target.className == "card__button" ? event.target.dispatchEvent(new CustomEvent("product-add", {
+			  detail: this.product.id,
+			  bubbles: true,
+		  })) : false;
 	  };
 	  
 	  created_card.insertAdjacentHTML("beforeEnd", `  
