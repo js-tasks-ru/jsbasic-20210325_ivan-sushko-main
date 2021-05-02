@@ -28,47 +28,63 @@ export default class StepSlider {
 	  return slider;
   }
 
-  initSlider() {	  
+  initSlider() {
 	  let select = el_name => {
 		  el_name = this.elem.querySelector(`${el_name}`);
 		  return el_name;
 	  };
 	  
+	  let dynamic = Number( select(".slider__value").innerHTML );
+	  
+	  this.step = null;
+	  let setStep = () => {
+		  return this.step = Math.round( this.elem.getBoundingClientRect().width / (this.data.steps - 1) );
+	  };
+	  
+	  this.percent = null;
+	  let getPercent =() => {
+		  return this.percent = this.elem.getBoundingClientRect().width/100;
+	  };
+	  
 	  let setLeft = (moveEvent) => {
-		  return `${ ( moveEvent.pageX - this.elem.getBoundingClientRect().left) / this.percent }%`;
+		  return ( moveEvent.pageX - this.elem.getBoundingClientRect().left ) / this.percent;
 	  };
 	  
 	  let getStep = () => {
-		  return `${ parseFloat( Math.round( parseFloat(select(".slider__thumb").style.left) /  this.step * this.percent) ) }`;
+		  return Math.round( parseFloat( select(".slider__thumb").style.left ) /  this.step * this.percent);
 	  };
 	  
-	  select(".slider__thumb").setAttribute("style", "left: 0%");
-	  select(".slider__progress").setAttribute("style", "width: 0%");
+	  select(".slider__thumb").style.left = "0%";
+	  select(".slider__progress").style.width = "0%";
 	  
 	  let changeOnClick = (clickEvent) => {
-		  let step = Math.round(this.elem.getBoundingClientRect().width/(this.data.steps - 1));
-		  let percent = this.elem.getBoundingClientRect().width/100;
-		  let click = Math.round( (clickEvent.clientX - this.elem.getBoundingClientRect().left)/step );
+		  if (this.step == null) setStep();
+		  if (this.percent == null) getPercent();
+		  dynamic = Math.round( ( clickEvent.clientX - this.elem.getBoundingClientRect().left ) / this.step );
 		  
-		  select(".slider__value").innerHTML = click;
+		  select(".slider__value").innerHTML = dynamic;
 		  select(".slider__step-active").removeAttribute("class");
-		  select(".slider__steps").children.item(click).setAttribute("class", "slider__step-active");
-		  select(".slider__thumb").setAttribute("style", `left: ${Math.floor( (step * click)/percent )}%`);
-		  select(".slider__progress").setAttribute("style", `width: ${Math.floor( (step * click)/percent )}%`);
+		  select(".slider__steps").children.item(dynamic).setAttribute("class", "slider__step-active");
+		  select(".slider__thumb").style.left =  Math.floor( (this.step * dynamic) / this.percent ) + "%";
+		  select(".slider__progress").style.width = Math.floor( (this.step * dynamic) / this.percent ) + "%";
 		  
 		  document.querySelector(".slider").dispatchEvent(new CustomEvent("slider-change", {
-			  detail: click,
+			  detail: dynamic,
 			  bubbles: true
 		  }));
 	  };
 	  
 	  select(".slider__thumb").onpointerdown = () => {
-		  this.step = Math.round( this.elem.getBoundingClientRect().width/(this.data.steps - 1) );
-		  this.percent = this.elem.getBoundingClientRect().width/100;
+		  if (this.step == null) setStep();
+		  if (this.percent == null) getPercent();
+		  
 		  document.querySelector(".slider").classList.toggle("slider_dragging");
 		  
 		  let move = moveEvent => {
-			  select(".slider__thumb").style.left = setLeft(moveEvent);
+			  select(".slider__step-active").removeAttribute("class");
+			  select(".slider__steps").children.item( getStep() ).setAttribute("class", "slider__step-active");
+			  
+			  select(".slider__thumb").style.left = setLeft(moveEvent) + "%";
 			  if ( parseInt( select(".slider__thumb").style.left ) >= 100 ) {
 				  select(".slider__thumb").style.left = "100%";
 			  }
@@ -76,11 +92,7 @@ export default class StepSlider {
 				  select(".slider__thumb").style.left = "0%";
 			  }
 
-			  
-			  select(".slider__step-active").removeAttribute("class");
-			  select(".slider__steps").children.item( getStep() ).setAttribute("class", "slider__step-active");
-
-			  select(".slider__progress").setAttribute("style", `width: ${setLeft(moveEvent)}`);
+			  select(".slider__progress").style.width = setLeft(moveEvent) + "%";
 			  if ( parseInt( select(".slider__progress").style.width ) >= 100) {
 				  select(".slider__progress").style.width = "100%";
 			  }
@@ -89,22 +101,40 @@ export default class StepSlider {
 			  }
 
 			  select(".slider__value").innerHTML = getStep();
+
+			  if ( Number( select(".slider__value").innerHTML ) == dynamic + 1 ) {
+				  dynamic = dynamic + 1;
+				  document.querySelector(".slider").dispatchEvent(new CustomEvent("slider-change", {
+					  detail: dynamic,
+					  bubbles: true
+				  }));
+			  }
+			  if ( Number( select(".slider__value").innerHTML ) == dynamic - 1 ) {
+				  dynamic = dynamic - 1;
+				  document.querySelector(".slider").dispatchEvent(new CustomEvent("slider-change", {
+					  detail: dynamic,
+					  bubbles: true
+				  }));
+			  }	  
+		  };
+		  
+		  let end = () => {
+			  document.querySelector(".slider").classList.toggle("slider_dragging");
+			  
+			  select(".slider__thumb").style.left = Math.floor( getStep() * 25 ) + "%";
+			  select(".slider__progress").style.width = select(".slider__thumb").style.left;
+			  
+			  document.removeEventListener("pointermove", move);
+			  select(".slider__thumb").onpointerup = null;
 			  
 			  document.querySelector(".slider").dispatchEvent(new CustomEvent("slider-change", {
-				  detail: Number( getStep() ),
+				  detail: Number( select(".slider__value").innerHTML ),
 				  bubbles: true
 			  }));
 		  };
-		  
+
 		  document.addEventListener("pointermove", move);
-		  
-		  select(".slider__thumb").onpointerup = () => {
-			  document.querySelector(".slider").classList.toggle("slider_dragging");
-			  select(".slider__thumb").setAttribute("style", `left: ${Math.floor( getStep() * 25 )}%`);
-			  select(".slider__progress").setAttribute("style", `width: ${ select(".slider__thumb").style.left }`);
-			  document.removeEventListener("pointermove", move);
-			  select(".slider__thumb").onpointerup = null;
-		  };
+		  document.onpointerup = end;
 	  };
 	  
 	  this.elem.addEventListener("click", changeOnClick);
