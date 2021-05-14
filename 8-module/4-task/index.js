@@ -13,23 +13,41 @@ export default class Cart {
   }
 
   addProduct(product) {
-    // СКОПИРУЙТЕ СЮДЯ СВОЙ КОД
+    let selected = this.cartItems.find( el => { el.product.id === product.id; } );
+	
+	if (selected) {
+		selected.count += 1;
+		this.onProductUpdate(selected);
+	}
+	else {
+		let obj = { product: product, count: 1, };
+		this.cartItems.push(obj);
+		this.onProductUpdate(obj);
+	}
   }
 
   updateProductCount(productId, amount) {
-    // СКОПИРУЙТЕ СЮДЯ СВОЙ КОД
+    let selected = this.cartItems.find( el => { el.product.id === productId; } );
+	
+	selected ? selected.count += amount : this.cartItems = this.cartItems.filter( el => {
+		if (el.count > 0) return el;
+	} );
   }
 
   isEmpty() {
-    // СКОПИРУЙТЕ СЮДЯ СВОЙ КОД
+    return !this.cartItems.length;
   }
 
   getTotalCount() {
-    // СКОПИРУЙТЕ СЮДЯ СВОЙ КОД
+    let quant_total = 0;
+	this.cartItems.forEach( el => { quant_total += el.count; } );
+	return quant_total;
   }
 
   getTotalPrice() {
-    // СКОПИРУЙТЕ СЮДЯ СВОЙ КОД
+    let price_total = 0;
+	this.cartItems.forEach( el => { price_total += el.product.price * el.count; } );
+	return price_total;
   }
 
   renderProduct(product, count) {
@@ -84,17 +102,67 @@ export default class Cart {
   }
 
   renderModal() {
-    // ...ваш код
+    this.modal_window = new Modal();
+	this.modal_window.setTitle("Your Order");
+	
+	let cart_modal = document.createElement("div");
+	this.cartItems.forEach( el => { cart_modal.append( this.renderProduct(el, el.count) ); } );
+	this.renderOrderForm();
+	
+	this.modal_window.setBody(cart_modal);
+	
+	this.modal_window.modal.onclick = event => {
+		if (event.target.src.includes("plus")) {
+			updateProductCount(event.target.closest(".cart-product").dataset.product-id, +1);
+		}
+		if (event.target.src.includes("minus")) {
+			updateProductCount(event.target.closest(".cart-product").dataset.product-id, -1);
+		}
+	};
+	
+	this.modal_window.modal.querySelector(".cart-form").onsubmit = async this.onSubmit(event);
+	
+	this.modal_window.open();
   }
 
   onProductUpdate(cartItem) {
-    // ...ваш код
-
-    this.cartIcon.update(this);
+	  if (this.cartItems.length <= 0) { this.modal_window.close(); return; };
+	  
+	  this.cartIcon.update(this);
+	  
+	  if (document.querySelector("body").className.includes("is-modal-open")) {
+		  let quant = this.modal_window.modal.querySelector(` [data-product-id="${cartItem.product.id}"] .cart-counter__count `);
+		  let price = this.modal_window.modal.querySelector(` [data-product-id="${cartItem.product.id}"] .cart-product__price `);
+		  let total = this.modal_window.modal.querySelector(" .cart-buttons__info-price ");
+		  
+		  quant.innerHTML = getTotalCount();
+		  price.innerHTML = cartItem.product.price;
+		  total.innerHTML = getTotalPrice();
+	  }
   }
 
   onSubmit(event) {
-    // ...ваш код
+    event.preventDefault();
+	document.querySelector(" button[type='submit'] ").classList.add("is-loading");
+	
+	let response = await fetch("https://httpbin.org/post", {
+		method: "POST",
+		body: new FormData( document.querySelector(".cart-form") )
+	});
+	
+	if (response.ok) {
+		this.modal_window.setTitle("Success!");
+		this.cartItems = [];
+		this.modal_window.setBody(`
+		<div class="modal__body-inner">
+		  <p>
+			Order successful! Your order is being cooked :) <br>
+			We’ll notify you about delivery time shortly.<br>
+			<img src="/assets/images/delivery.gif">
+		  </p>
+		</div>
+		`);
+	}
   };
 
   addEventListeners() {
