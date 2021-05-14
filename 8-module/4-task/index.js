@@ -29,9 +29,9 @@ export default class Cart {
   updateProductCount(productId, amount) {
     let selected = this.cartItems.find( el => { el.product.id === productId; } );
 	
-	selected ? selected.count += amount : this.cartItems = this.cartItems.filter( el => {
-		if (el.count > 0) return el;
-	} );
+    selected ? selected.count += amount : this.cartItems = this.cartItems.filter( el => {
+      if (el.count > 0) return el;
+    } );
   }
 
   isEmpty() {
@@ -40,14 +40,14 @@ export default class Cart {
 
   getTotalCount() {
     let quant_total = 0;
-	this.cartItems.forEach( el => { quant_total += el.count; } );
-	return quant_total;
+    this.cartItems.forEach( el => { quant_total += el.count; } );
+    return quant_total;
   }
 
   getTotalPrice() {
     let price_total = 0;
-	this.cartItems.forEach( el => { price_total += el.product.price * el.count; } );
-	return price_total;
+    this.cartItems.forEach( el => { price_total += el.product.price * el.count; } );
+    return price_total;
   }
 
   renderProduct(product, count) {
@@ -103,26 +103,28 @@ export default class Cart {
 
   renderModal() {
     this.modal_window = new Modal();
-	this.modal_window.setTitle("Your Order");
-	
-	let cart_modal = document.createElement("div");
-	this.cartItems.forEach( el => { cart_modal.append( this.renderProduct(el, el.count) ); } );
-	this.renderOrderForm();
-	
-	this.modal_window.setBody(cart_modal);
-	
-	this.modal_window.modal.onclick = event => {
-		if (event.target.src.includes("plus")) {
-			updateProductCount(event.target.closest(".cart-product").dataset.product-id, +1);
-		}
-		if (event.target.src.includes("minus")) {
-			updateProductCount(event.target.closest(".cart-product").dataset.product-id, -1);
-		}
-	};
-	
-	this.modal_window.modal.querySelector(".cart-form").onsubmit = async this.onSubmit(event);
-	
-	this.modal_window.open();
+    this.modal_window.setTitle("Your Order");
+    
+    let cart_modal = document.createElement("div");
+    this.cartItems.forEach( el => { cart_modal.append( this.renderProduct(el, el.count) ); } );
+    this.renderOrderForm();
+    
+    this.modal_window.setBody(cart_modal);
+    
+    this.modal_window.modal.onclick = event => {
+      if (event.target.src.includes("plus")) {
+        updateProductCount(event.target.closest(".cart-product").dataset.product-id, +1);
+      }
+      if (event.target.src.includes("minus")) {
+        updateProductCount(event.target.closest(".cart-product").dataset.product-id, -1);
+      }
+    };
+    
+    this.modal_window.modal.querySelector(".cart-form").onsubmit = evt => {
+      this.onSubmit(evt);
+    };
+    
+    this.modal_window.open();
   }
 
   onProductUpdate(cartItem) {
@@ -143,26 +145,29 @@ export default class Cart {
 
   onSubmit(event) {
     event.preventDefault();
-	document.querySelector(" button[type='submit'] ").classList.add("is-loading");
-	
-	let response = await fetch("https://httpbin.org/post", {
-		method: "POST",
-		body: new FormData( document.querySelector(".cart-form") )
-	});
-	
-	if (response.ok) {
-		this.modal_window.setTitle("Success!");
-		this.cartItems = [];
-		this.modal_window.setBody(`
-		<div class="modal__body-inner">
-		  <p>
-			Order successful! Your order is being cooked :) <br>
-			We’ll notify you about delivery time shortly.<br>
-			<img src="/assets/images/delivery.gif">
-		  </p>
-		</div>
-		`);
-	}
+    document.querySelector("button[type='submit']").classList.add("is-loading");
+    
+    let response = fetch("https://httpbin.org/post", {
+      method: "POST",
+      body: new FormData(this.modal_window.modal.querySelector(".cart-form")),
+    });
+
+    response.then( () => {
+      if (response.ok) {
+        this.modal_window.setTitle("Success!");
+        this.cartItems = [];
+        this.modal_window.setBody(`
+        <div class="modal__body-inner">
+          <p>
+          Order successful! Your order is being cooked :) <br>
+          We’ll notify you about delivery time shortly.<br>
+          <img src="/assets/images/delivery.gif">
+          </p>
+        </div>
+        `)
+      }
+    }
+    );
   };
 
   addEventListeners() {
