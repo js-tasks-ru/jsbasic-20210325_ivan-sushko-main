@@ -4,7 +4,7 @@ import escapeHtml from '../../assets/lib/escape-html.js';
 import Modal from '../../7-module/2-task/index.js';
 
 export default class Cart {
-  cartItems = []; // [product: {...}, count: N]
+  cartItems = [];
 
   constructor(cartIcon) {
     this.cartIcon = cartIcon;
@@ -15,23 +15,25 @@ export default class Cart {
   addProduct(product) {
     let selected = this.cartItems.find( el => { el.product.id === product.id; } );
 	
-	if (selected) {
-		selected.count += 1;
-		this.onProductUpdate(selected);
-	}
-	else {
-		let obj = { product: product, count: 1, };
-		this.cartItems.push(obj);
-		this.onProductUpdate(obj);
-	}
+    if (selected) {
+      selected.count += 1;
+      this.onProductUpdate(selected);
+    }
+    else {
+      let obj = { product: product, count: 1, };
+      this.cartItems.push(obj);
+      this.onProductUpdate(obj);
+    }
   }
 
   updateProductCount(productId, amount) {
-    let selected = this.cartItems.find( el => { el.product.id === productId; } );
-	
-    selected ? selected.count += amount : this.cartItems = this.cartItems.filter( el => {
-      if (el.count > 0) return el;
-    } );
+    for (let item of this.cartItems) {
+		  if ( item.product.id === productId ) {
+			  item.count = item.count + amount;
+			  this.onProductUpdate(item);
+		  }
+	  }
+    this.cartItems = this.cartItems.filter( el => { if (el.count > 0) return el; } );
   }
 
   isEmpty() {
@@ -52,9 +54,7 @@ export default class Cart {
 
   renderProduct(product, count) {
     return createElement(`
-    <div class="cart-product" data-product-id="${
-      product.id
-    }">
+    <div class="cart-product" data-product-id="${product.id}">
       <div class="cart-product__img">
         <img src="/assets/images/products/${product.image}" alt="product">
       </div>
@@ -91,9 +91,7 @@ export default class Cart {
         <div class="cart-buttons__buttons btn-group">
           <div class="cart-buttons__info">
             <span class="cart-buttons__info-text">total</span>
-            <span class="cart-buttons__info-price">€${this.getTotalPrice().toFixed(
-              2
-            )}</span>
+            <span class="cart-buttons__info-price">€${this.getTotalPrice().toFixed(2)}</span>
           </div>
           <button type="submit" class="cart-buttons__button btn-group__button button">order</button>
         </div>
@@ -107,24 +105,24 @@ export default class Cart {
     
     let cart_modal = document.createElement("div");
     this.cartItems.forEach( el => { cart_modal.append( this.renderProduct(el, el.count) ); } );
-    this.renderOrderForm();
+    cart_modal.append( this.renderOrderForm() );
     
     this.modal_window.setBody(cart_modal);
+    this.modal_window.open();
     
-    this.modal_window.modal.onclick = event => {
-      if (event.target.src.includes("plus")) {
+    document.querySelector(".modal").onclick = event => {
+      if (event.target.className.includes("plus")) {
         updateProductCount(event.target.closest(".cart-product").dataset.product-id, +1);
       }
-      if (event.target.src.includes("minus")) {
+      if (event.target.className.includes("minus")) {
         updateProductCount(event.target.closest(".cart-product").dataset.product-id, -1);
       }
     };
     
-    this.modal_window.modal.querySelector(".cart-form").onsubmit = evt => {
-      this.onSubmit(evt);
+    document.querySelector(".cart-form").onsubmit = evt => {
+      evt.preventDefault();
+      this.onSubmit();
     };
-    
-    this.modal_window.open();
   }
 
   onProductUpdate(cartItem) {
@@ -133,18 +131,17 @@ export default class Cart {
 	  this.cartIcon.update(this);
 	  
 	  if (document.querySelector("body").className.includes("is-modal-open")) {
-		  let quant = this.modal_window.modal.querySelector(` [data-product-id="${cartItem.product.id}"] .cart-counter__count `);
-		  let price = this.modal_window.modal.querySelector(` [data-product-id="${cartItem.product.id}"] .cart-product__price `);
-		  let total = this.modal_window.modal.querySelector(" .cart-buttons__info-price ");
+		  let quant = document.querySelector(` [data-product-id="${cartItem.product.id}"] .cart-counter__count `);
+		  let price = document.querySelector(` [data-product-id="${cartItem.product.id}"] .cart-product__price `);
+		  let total = document.querySelector(" .cart-buttons__info-price ");
 		  
-		  quant.innerHTML = getTotalCount();
-		  price.innerHTML = cartItem.product.price;
-		  total.innerHTML = getTotalPrice();
+		  quant.innerHTML = cartItem.count;
+		  price.innerHTML = cartItem.product.price.toFixed(2);
+		  total.innerHTML = getTotalPrice().toFixed(2);
 	  }
   }
 
-  onSubmit(event) {
-    event.preventDefault();
+  onSubmit() {
     document.querySelector("button[type='submit']").classList.add("is-loading");
     
     let response = fetch("https://httpbin.org/post", {
@@ -168,7 +165,7 @@ export default class Cart {
       }
     }
     );
-  };
+  }
 
   addEventListeners() {
     this.cartIcon.elem.onclick = () => this.renderModal();
