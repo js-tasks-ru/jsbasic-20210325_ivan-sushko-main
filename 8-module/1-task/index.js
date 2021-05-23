@@ -3,8 +3,18 @@ import createElement from '../../assets/lib/create-element.js';
 export default class CartIcon {
   constructor() {
     this.render();
-
     this.addEventListeners();
+    this.elem.style.zIndex = 9000; // over9000
+
+    this.squeeze = function() {
+      return document.documentElement.clientWidth < this.elem.closest(".container").getBoundingClientRect().right + this.elem.offsetWidth;
+    };
+    this.scroll = function() {
+      return window.scrollY > this.elem.getBoundingClientRect().y;
+    };
+    this.onTop = function() {
+      return window.scrollY < this.elem.getBoundingClientRect().y;
+    };
   }
 
   render() {
@@ -39,22 +49,33 @@ export default class CartIcon {
   }
 
   updatePosition() {
-	  switch (document.documentElement.clientWidth) {
-		  case 766: break;
-		  default:
-			if (window.scrollY > this.elem.getBoundingClientRect().y && this.elem.offsetWidth) {
-				this.elem.style.position = "fixed";
-				this.elem.style.left = this.elem.closest(".container").getBoundingClientRect().right + 20 + "px";
-				this.elem.style.top = "50px";
-			}
-			if (window.scrollY < this.elem.getBoundingClientRect().y && this.elem.offsetWidth) {
-				this.elem.style.position = "absolute";
-				this.elem.style.removeProperty("left");
-			}
-			if (document.documentElement.clientWidth < this.elem.closest(".container").getBoundingClientRect().right + this.elem.offsetWidth) {
-				this.elem.style.position = "fixed";
-				this.elem.style.left = document.documentElement.clientWidth - this.elem.offsetWidth - 10 + "px";
-			}
-	  }
+    if ( document.documentElement.clientWidth < 767 ) {
+      this.elem.style.position = "fixed";
+      this.elem.style.top = "50px";
+      this.elem.style.right = "0px";
+      this.elem.style.removeProperty("left");
+      return;
+    }
+
+    if ( this.onTop() ) {
+      this.elem.style.position = "absolute";
+      this.elem.style.top = "50px";
+      this.elem.style.removeProperty("left");
+      return;
+    }
+
+    if ( this.squeeze() ) {
+      this.elem.style.position = "fixed";
+      this.elem.style.right = "10px";
+      this.elem.style.left = document.documentElement.clientWidth - this.elem.offsetWidth - 10 + "px";
+      return;
+    }
+
+    if ( this.scroll() ) {
+      this.elem.style.position = "fixed";
+      this.elem.style.top = "50px";
+      this.elem.style.left = this.elem.closest(".container").getBoundingClientRect().right + 20 + "px";
+      return;
+    }
   }
 }
