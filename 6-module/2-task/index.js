@@ -11,7 +11,7 @@ export default class ProductCard {
 	  created_card.className = "card";
 	  
 	  created_card.onclick = event => {
-		  event.target.className == "card__button" ? event.target.dispatchEvent(new CustomEvent("product-add", {
+		  event.target.closest(".card__button") ? event.target.dispatchEvent(new CustomEvent("product-add", {
 			  detail: this.product.id,
 			  bubbles: true,
 		  })) : false;
