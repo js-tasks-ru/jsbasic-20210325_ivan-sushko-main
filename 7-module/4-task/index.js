@@ -23,7 +23,7 @@ export default class StepSlider {
 	  for (let step = 0; step < this.data.steps; step++) {
 		  slider.querySelector(".slider__steps").append( document.createElement("span") );
 	  }
-	  slider.querySelector(".slider__steps").children[0].className = "slider__step-active";
+	  slider.querySelector(".slider__steps").children[this.data.value || 0].className = "slider__step-active";
 	  
 	  return slider;
   }
@@ -128,7 +128,7 @@ export default class StepSlider {
 			  select(".slider__thumb").onpointerup = null;
 			  
 			  document.querySelector(".slider").dispatchEvent(new CustomEvent("slider-change", {
-				  detail: Number( select(".slider__value").innerHTML ),
+				  detail: dynamic,
 				  bubbles: true
 			  }));
 		  };

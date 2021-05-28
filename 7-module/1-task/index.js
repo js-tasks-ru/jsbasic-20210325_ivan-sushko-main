@@ -4,7 +4,6 @@ export default class RibbonMenu {
   constructor(categories) {
     this.categories = categories;
 	this.elem = this.render();
-	this.ribbon = null;
   }
   
 	  render() {
@@ -58,7 +57,7 @@ export default class RibbonMenu {
 		  
 		  list_area.firstElementChild.classList.add(this.names.active);
 		  this.ribbon.firstElementChild.after(list_area);
-		  this.categories = list_area = null;
+		  list_area = null;
 	  }
 	  
 	  initSelect() {
@@ -97,8 +96,8 @@ export default class RibbonMenu {
 		  });
 		  
 		  this.ribbon.addEventListener("click", event => {
-			  if (event.target.className.includes(this.names.right)) list.scrollBy(350, 0);
-			  if (event.target.className.includes(this.names.left)) list.scrollBy(-350, 0);
+			  if (event.target.closest(`.${this.names.right}`)) list.scrollBy(350, 0);
+			  if (event.target.closest(`.${this.names.left}`)) list.scrollBy(-350, 0);
 		  });
 	  }
 }

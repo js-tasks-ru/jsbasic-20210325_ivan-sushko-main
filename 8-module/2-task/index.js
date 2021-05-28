@@ -1,7 +1,7 @@
 import createElement from '../../assets/lib/create-element.js';
 import ProductCard from '../../6-module/2-task/index.js';
 
-export default class ProductGrid {
+export default class ProductsGrid {
 	constructor(products) {
 		this.products = products;
 		this.renderElem();
@@ -30,19 +30,12 @@ export default class ProductGrid {
 			Object.defineProperty(this.filters, `${filter}`, {value: filters[filter], writable: true, enumerable: true});
 		}
 		
-		for (let [key, value] of Object.entries(this.filters)) {
-			
-			if (this.result.length == 0) this.result = [...this.products];
-			
-			( key == "noNuts" && value != false ) ? this.result = this.result.filter( el => { if ( !el.nuts ) return el; } ) :
-			( key == "vegeterianOnly" && value ) ? this.result = this.result.filter( el => { if ( el.vegeterian ) return el; } ) :
-			( key == "maxSpiciness" ) ? this.result = this.result.filter( el => { if ( el.spiciness <= value ) return el; } ) :
-			( key == "category" && value ) ? this.result = this.result.filter( el => { if ( el.category == value ) return el; } ) :
-			this.result = [...this.products];
-			
-			this.result = new Set(this.result);
-			this.result = Array.from(this.result);
-		}
+		// Taken from https://github.com/js-tasks-ru/jsbasic-20210325_alexander-kuimov/blob/master/8-module/2-task/index.js#L29
+		this.result = this.products
+		.filter( item => (this.filters["noNuts"] ? this.filters["noNuts"] === !item["nuts"] : item) )
+		.filter( item => (this.filters["vegeterianOnly"] ? this.filters["vegeterianOnly"] === item["vegeterian"] : item) )
+		.filter( item => (this.filters["maxSpiciness"] ? item["spiciness"] <= this.filters["maxSpiciness"] : item) )
+		.filter( item => (this.filters["category"] ? this.filters["category"] === item["category"] : item) );
 		
 		this.elem.querySelector(".products-grid__inner").innerHTML = null;
 		for (let dish of this.result) {
